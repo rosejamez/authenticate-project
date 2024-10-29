@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import * as userService from '../service/userService';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/userModel';
 
 // Add a new user
 export const addUser = async (req: Request, res: Response): Promise<void> => {
@@ -63,3 +66,30 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         res.status(500).json({ message: error instanceof Error ? error.message : 'An unknown error occurred.' });
     }
 };
+
+
+// controllers/authController.ts
+
+
+export const register = async (req: Request, res: Response) => {
+    const { org_id,username, email, password, role } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ org_id,username, email, password: hashedPassword, role });
+    await newUser.save();
+    res.status(201).json({ message: 'User registered successfully' });
+    return ;
+};
+
+export const login = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+         res.status(401).json({ message: 'Invalid credentials' });
+         return;
+    }
+    const token = jwt.sign({ id: user.org_id, role: user.role }, "petdryfuygiuhi" as string, { expiresIn: '1h' });
+    res.json({ token });
+    return;
+};
+
+

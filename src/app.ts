@@ -1,9 +1,16 @@
+// src/app.ts
 import express from 'express';
-import userRoutes from './routes/userRoutes';
 import cors from 'cors';
-import './config/database'; // Ensure this connects to your MongoDB
+import dotenv from 'dotenv';
+import authRoutes from './routes/userRoutes';
+import connectDB from './config/database';
+
+dotenv.config();
 
 const app = express();
+
+// Connect to the database
+connectDB()
 
 // Enable CORS for all routes
 app.use(cors());
@@ -12,9 +19,9 @@ app.use(cors());
 app.use(express.json());
 
 // Define routes
-app.use('/api/users', userRoutes);
+app.use('/api/users', authRoutes);
 
-// Optionally, add a default route for health checks
+// Health check route
 app.get('/', (req, res) => {
     res.send('API is running');
 });
